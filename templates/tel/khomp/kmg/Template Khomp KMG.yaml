@@ -1,0 +1,398 @@
+zabbix_export:
+  version: '6.2'
+  date: '2022-09-19T15:19:51Z'
+  template_groups:
+    -
+      uuid: de71612840214f62895662c31325ce43
+      name: '[01] TEMPLATE MODELO/[01] KHOMP'
+  templates:
+    -
+      uuid: f7a03a7eb22440969cfda63892fbde9d
+      template: 'Template Khomp KMG'
+      name: 'Template Khomp KMG'
+      description: |
+        Template criado por Afonso Filho e Emanoel Sena para monitoramento de equipamentos de telefonia KHOMP KMG.
+        Observação: Utilize SNMPv1
+        Criado em: 15/09/2022
+      groups:
+        -
+          name: '[01] TEMPLATE MODELO/[01] KHOMP'
+      discovery_rules:
+        -
+          uuid: de3691c6539f45088487232a5ae3136f
+          name: '01 - Device Serial Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SDEVICE},1.3.6.1.4.1.32624.2.1.2.2.1.1,{#DEVICENAME},1.3.6.1.4.1.32624.2.1.2.2.1.3]'
+          key: kmg.device.discovery
+          delay: 24h
+          item_prototypes:
+            -
+              uuid: db9e9c1d425d4b7fb5c83190bbf49b9e
+              name: 'Device {#SNMPINDEX}::({#DEVICENAME})::Serial'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.2.1.1.{#SNMPINDEX}'
+              key: 'kmg.device.serial[{#SDEVICE}]'
+              delay: 12h
+              trends: '0'
+              value_type: TEXT
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP SERVICE'
+            -
+              uuid: 4d2f808dde384598a311b32e4a4a9c65
+              name: 'Device {#SNMPINDEX}::({#DEVICENAME})::Status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.2.1.4.{#SNMPINDEX}'
+              key: 'kmg.device.status[{#SNMPINDEX}]'
+              delay: 15m
+              valuemap:
+                name: 'Service state'
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP SERVICE'
+              trigger_prototypes:
+                -
+                  uuid: e270bad6aea241a292b616d610c72663
+                  expression: 'last(/Template Khomp KMG/kmg.device.status[{#SNMPINDEX}],#1)=0'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Khomp KMG/kmg.device.status[{#SNMPINDEX}],#1)<>0'
+                  name: 'Device {#SNMPINDEX}::({#DEVICENAME})::Down'
+                  priority: HIGH
+        -
+          uuid: d0f5a38990c44c778307e5e668bfa62e
+          name: '02 - Device Port Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#LINKSTATUS},1.3.6.1.4.1.32624.2.1.2.3.1.2,{#LINKNAME},1.3.6.1.4.1.32624.2.1.2.3.1.3]'
+          key: kmg.device.port.discovery
+          delay: 24h
+          filter:
+            conditions:
+              -
+                macro: '{#LINKNAME}'
+                value: 'LIVRE*'
+                operator: NOT_MATCHES_REGEX
+                formulaid: A
+          item_prototypes:
+            -
+              uuid: e75fa07fadf647288fbc4692fd2183ab
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Total de Canais Ocupados'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.28.{#SNMPINDEX}'
+              key: 'kmg.device.port.channel.busy[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 06ec7f17b2b24d3681813711ec23e741
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Total de Canais Habilitados'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.25.{#SNMPINDEX}'
+              key: 'kmg.device.port.channel.enabled[{#SNMPINDEX}]'
+              delay: 12h
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 0a808c1c1aa242abbf4a69a66d99a6e5
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Total de Canais em Falha'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.27.{#SNMPINDEX}'
+              key: 'kmg.device.port.channel.fail[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 1f7fbaccebb84f6c9b536020be0ec2d7
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Total de Canais IDLE'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.26.{#SNMPINDEX}'
+              key: 'kmg.device.port.channel.idle[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+              trigger_prototypes:
+                -
+                  uuid: a646b4ff1ca34bed9a33c6423ee9473f
+                  expression: 'last(/Template Khomp KMG/kmg.device.port.channel.idle[{#SNMPINDEX}],#1)<=5'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Khomp KMG/kmg.device.port.channel.idle[{#SNMPINDEX}],#1)>5'
+                  name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Canais Livres < 5'
+                  priority: HIGH
+                  dependencies:
+                    -
+                      name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Link Down'
+                      expression: 'last(/Template Khomp KMG/kmg.device.port.status[{#SNMPINDEX}])=0'
+                      recovery_expression: 'last(/Template Khomp KMG/kmg.device.port.status[{#SNMPINDEX}])<>0'
+                  tags:
+                    -
+                      tag: Application
+                      value: 'KHOMP PORT'
+            -
+              uuid: b4c120f24b7a4efba26322835755affb
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::CRC Erro'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.20.{#SNMPINDEX}'
+              key: 'kmg.device.port.crc[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 08573d9df8ea44028c03fef4980a8ff1
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Modo de Operacao'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.45.{#SNMPINDEX}'
+              key: 'kmg.device.port.operatingmodel[{#SNMPINDEX}]'
+              delay: 12h
+              valuemap:
+                name: KhompLinkOperatingMode
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 46f593331e6d4672b8c329d6a83795c7
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Signaling'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.4.{#SNMPINDEX}'
+              key: 'kmg.device.port.signaling[{#SNMPINDEX}]'
+              delay: 12h
+              valuemap:
+                name: KhompSignaling
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+            -
+              uuid: 29ae77c0a3a94632865e80e999cfc518
+              name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.2.1.2.3.1.2.{#SNMPINDEX}'
+              key: 'kmg.device.port.status[{#SNMPINDEX}]'
+              delay: 5m
+              valuemap:
+                name: 'Service state'
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP PORT'
+              trigger_prototypes:
+                -
+                  uuid: b3f6afeeee3840e5a7c361e7967c657d
+                  expression: 'last(/Template Khomp KMG/kmg.device.port.status[{#SNMPINDEX}])=0'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template Khomp KMG/kmg.device.port.status[{#SNMPINDEX}])<>0'
+                  name: 'PORT {#SNMPINDEX}::({#LINKNAME})::Link Down'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: Application
+                      value: 'KHOMP PORT'
+        -
+          uuid: 2e408a802e1546a38182b8e9e4ac45c9
+          name: '03 - NAP Channel Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#NAPCHANNEL},1.3.6.1.4.1.32624.3.1.1.1.2.1.2,{#NAPTYPE},1.3.6.1.4.1.32624.3.1.1.1.2.1.3]'
+          key: kmg.nap.channel.discovery
+          delay: 24h
+          item_prototypes:
+            -
+              uuid: 941a93c2823641ba93fd4a6c23f0974c
+              name: 'NAP - {#NAPCHANNEL} :: Total de Canais Ocupados'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.3.1.1.1.2.1.7.{#SNMPINDEX}'
+              key: 'kmg.nap.channel.busy[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP NAP'
+            -
+              uuid: 46c80aa5ca044e78a0d6a371cccf61c1
+              name: 'NAP - {#NAPCHANNEL} :: Total de Canais em Falha'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.3.1.1.1.2.1.5.{#SNMPINDEX}'
+              key: 'kmg.nap.channel.fault[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP NAP'
+            -
+              uuid: 19e19e86f3904572abfea21a828ec482
+              name: 'NAP - {#NAPCHANNEL} :: Total de Canais Livres'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.3.1.1.1.2.1.6.{#SNMPINDEX}'
+              key: 'kmg.nap.channel.free[{#SNMPINDEX}]'
+              delay: 5m
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP NAP'
+            -
+              uuid: 7d3fc96e318145e5b9880eb8850fd2ee
+              name: 'NAP - {#NAPCHANNEL} :: Status'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.3.1.1.1.2.1.4.{#SNMPINDEX}'
+              key: 'kmg.nap.channel.status[{#SNMPINDEX}]'
+              delay: 5m
+              valuemap:
+                name: 'Service state'
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP NAP'
+            -
+              uuid: 99e7e4cce7b84c53b3f178ef831be994
+              name: 'NAP - {#NAPCHANNEL} :: Tipo'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.32624.3.1.1.1.2.1.3.{#SNMPINDEX}'
+              key: 'kmg.nap.channel.type[{#SNMPINDEX}]'
+              delay: 12h
+              valuemap:
+                name: 'Channel Type'
+              tags:
+                -
+                  tag: Application
+                  value: 'KHOMP NAP'
+          trigger_prototypes:
+            -
+              uuid: 5b2e13c012534df89c884dc274db412c
+              expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*10'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*15'
+              name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 10%'
+              priority: HIGH
+            -
+              uuid: ae881be0c57c470eb9f376a1d38eab8a
+              expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*20'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*25'
+              name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 20%'
+              priority: AVERAGE
+              dependencies:
+                -
+                  name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 10%'
+                  expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*10'
+                  recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*15'
+            -
+              uuid: fc5563e5ff8f4b81b54c287015ff000d
+              expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*30'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*30'
+              name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 30%'
+              priority: WARNING
+              dependencies:
+                -
+                  name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 10%'
+                  expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*10'
+                  recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*15'
+                -
+                  name: 'teste - NAP - {#NAPCHANNEL} :: Canais Livres a baixo de 20%'
+                  expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))<(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*20'
+                  recovery_expression: '(last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1))>(last(/Template Khomp KMG/kmg.nap.channel.fault[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.free[{#SNMPINDEX}],#1)+last(/Template Khomp KMG/kmg.nap.channel.busy[{#SNMPINDEX}],#1))/100*25'
+      valuemaps:
+        -
+          uuid: b87bb2e8878e476d8025fac75dc616da
+          name: 'Channel Type'
+          mappings:
+            -
+              value: '0'
+              newvalue: SIP
+            -
+              value: '1'
+              newvalue: TRUNK
+        -
+          uuid: 9606a67a94284a68b242b6550d1b3566
+          name: KhompLinkOperatingMode
+          mappings:
+            -
+              value: '0'
+              newvalue: T1
+            -
+              value: '1'
+              newvalue: E1
+        -
+          uuid: bfa9ae720d064bb8ba27062eebe8b436
+          name: KhompSignaling
+          mappings:
+            -
+              value: '0'
+              newvalue: Inactive
+            -
+              value: '1'
+              newvalue: R2Digital
+            -
+              value: '2'
+              newvalue: ContinuousEM
+            -
+              value: '3'
+              newvalue: PulsedEM
+            -
+              value: '4'
+              newvalue: UserR2Digital
+            -
+              value: '5'
+              newvalue: Analog
+            -
+              value: '6'
+              newvalue: OpenCAS
+            -
+              value: '7'
+              newvalue: OpenR2
+            -
+              value: '8'
+              newvalue: SIP
+            -
+              value: '9'
+              newvalue: OpenCCS
+            -
+              value: '10'
+              newvalue: PRIEndPoint
+            -
+              value: '11'
+              newvalue: AnalogTerminal
+            -
+              value: '12'
+              newvalue: PRINetwork
+            -
+              value: '13'
+              newvalue: PRIPassive
+            -
+              value: '14'
+              newvalue: LineSide
+            -
+              value: '15'
+              newvalue: CASEL7
+            -
+              value: '16'
+              newvalue: GSM
+            -
+              value: '17'
+              newvalue: E1LC
+            -
+              value: '18'
+              newvalue: ISUP
+            -
+              value: '19'
+              newvalue: ISUPPassive
+        -
+          uuid: d0c6b164ca74426eac7bfc8254f21117
+          name: 'Service state'
+          mappings:
+            -
+              value: '0'
+              newvalue: Down
+            -
+              value: '1'
+              newvalue: Up
